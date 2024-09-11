@@ -196,28 +196,59 @@ class _PguploadPageState extends State<PguploadPage> {
     );
   }
 
-
-  // Função para construir os campos e upload lado a lado
   Widget _buildTextFieldAndUpload(String textLabel, String? uploadLabel) {
     return Row(
       children: [
-        // Campo de texto
-        Expanded(
-          flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText: textLabel,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+        // Campo de texto com tamanho reduzido para CEP
+        if (textLabel == 'CEP')
+          SizedBox(
+            width: 850, // Definir uma largura menor para o campo de CEP
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  labelText: textLabel,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ),
+          )
+        // Campo de texto para Bairro
+        else if (textLabel == 'Bairro')
+          SizedBox(
+            width: 850, // Definir uma largura específica para o campo de Bairro
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  labelText: textLabel,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ),
+          )
+        // Outros campos de texto normais
+        else
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  labelText: textLabel,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
         SizedBox(width: 16),
-        // Botão de upload
+        // Botão de upload se houver necessidade
         if (uploadLabel != null && uploadLabel.isNotEmpty) ...[
           Expanded(
             flex: 1,
@@ -228,10 +259,10 @@ class _PguploadPageState extends State<PguploadPage> {
                 SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    String? result = await _pickFile(); // Pegar o arquivo usando file_picker
+                    String? result = await _pickFile();
                     if (result != null) {
                       setState(() {
-                        _uploadedFiles[uploadLabel] = result; // Armazenar o nome do arquivo
+                        _uploadedFiles[uploadLabel] = result;
                       });
                     }
                   },
@@ -241,7 +272,7 @@ class _PguploadPageState extends State<PguploadPage> {
                     style: TextStyle(color: Colors.white),
                   ),
                   style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Color(0xFF005EB8)), // Azul da página
+                    backgroundColor: WidgetStateProperty.all(Color(0xFF005EB8)),
                     padding: WidgetStateProperty.all(EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
                   ),
                 ),
@@ -260,7 +291,7 @@ class _PguploadPageState extends State<PguploadPage> {
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
                             setState(() {
-                              _uploadedFiles[uploadLabel] = null; // Excluir o arquivo anexado
+                              _uploadedFiles[uploadLabel] = null;
                             });
                           },
                         ),
@@ -274,6 +305,7 @@ class _PguploadPageState extends State<PguploadPage> {
       ],
     );
   }
+
 
   Widget _buildPessoaFisicaFields() {
     return Column(
