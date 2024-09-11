@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
 class PguploadPage extends StatefulWidget {
   @override
   _PguploadPageState createState() => _PguploadPageState();
-
 }
 
 class _PguploadPageState extends State<PguploadPage> {
@@ -168,6 +167,25 @@ class _PguploadPageState extends State<PguploadPage> {
                     if (_tipoOperadora == 'Pessoa Física') _buildPessoaFisicaFields(),
                     if (_tipoOperadora == 'Pessoa Jurídica de Direito Privado') _buildPessoaJuridicaPrivadaFields(),
                     if (_tipoOperadora == 'Pessoa Jurídica de Direito Público') _buildPessoaJuridicaPublicaFields(),
+                    SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 150,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // Navegação removida
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: Icon(Icons.check),
+                          label: Text("Enviar"),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -178,16 +196,19 @@ class _PguploadPageState extends State<PguploadPage> {
     );
   }
 
-  // Função para construir os campos lado a lado
-  Widget _buildThreeTextFields(String label1, String label2, String label3) {
+
+  // Função para construir os campos e upload lado a lado
+  Widget _buildTextFieldAndUpload(String textLabel, String? uploadLabel) {
     return Row(
       children: [
+        // Campo de texto
         Expanded(
+          flex: 2,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextFormField(
               decoration: InputDecoration(
-                labelText: label1,
+                labelText: textLabel,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -195,32 +216,61 @@ class _PguploadPageState extends State<PguploadPage> {
             ),
           ),
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText: label2,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+        SizedBox(width: 16),
+        // Botão de upload
+        if (uploadLabel != null && uploadLabel.isNotEmpty) ...[
+          Expanded(
+            flex: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(uploadLabel),
+                SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    String? result = await _pickFile(); // Pegar o arquivo usando file_picker
+                    if (result != null) {
+                      setState(() {
+                        _uploadedFiles[uploadLabel] = result; // Armazenar o nome do arquivo
+                      });
+                    }
+                  },
+                  icon: Icon(Icons.attach_file, color: Colors.white),
+                  label: Text(
+                    _uploadedFiles[uploadLabel] == null ? 'Anexar arquivo PDF' : 'Alterar arquivo',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(Color(0xFF005EB8)), // Azul da página
+                    padding: WidgetStateProperty.all(EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
+                  ),
                 ),
-              ),
+                if (_uploadedFiles[uploadLabel] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Arquivo anexado: ${_uploadedFiles[uploadLabel]}',
+                            style: TextStyle(fontSize: 14, color: Colors.blue),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _uploadedFiles[uploadLabel] = null; // Excluir o arquivo anexado
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              decoration: InputDecoration(
-                labelText: label3,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-          ),
-        ),
+        ],
       ],
     );
   }
@@ -230,16 +280,13 @@ class _PguploadPageState extends State<PguploadPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Documentos para Pessoa Física', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,)),
-        SizedBox(height: 8),
-        _buildThreeTextFields(
-            'Número do CPF', 'Número da Carteira de Identidade', 'Endereço', ),
-        _buildThreeTextFields(
-          'UF', 'Bairro', 'CEP', ),
         SizedBox(height: 16),
-        _buildUploadButton('Cópia do CPF'),
-        _buildUploadButton('Cópia da Carteira de Identidade'),
-        _buildUploadButton('Cópia do comprovante de residência (EM NOME DO CONTRATADO)'),
-        _buildUploadButton('Certidão Negativa de Débitos junto à Secretaria de Estado de Fazenda do DF'),
+        _buildTextFieldAndUpload('Número do CPF', 'Cópia do CPF'),
+        _buildTextFieldAndUpload('Número da Carteira de Identidade', 'Cópia da Carteira de Identidade'),
+        _buildTextFieldAndUpload('Endereço', 'Cópia do comprovante de residência (EM NOME DO CONTRATADO)'),
+        _buildTextFieldAndUpload('UF', 'Certidão Negativa de Débitos junto à Secretaria de Estado de Fazenda do DF'),
+        _buildTextFieldAndUpload('Bairro', null), // Campo de texto sem botão de upload
+        _buildTextFieldAndUpload('CEP', null), // Campo de texto sem botão de upload
       ],
     );
   }
@@ -249,16 +296,13 @@ class _PguploadPageState extends State<PguploadPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Documentos para Pessoa Jurídica de Direito Privado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,)),
-        SizedBox(height: 8),
-        _buildThreeTextFields('Número do CNPJ', 'Número de Inscrição (INSS)', 'Endereço', ),
-        _buildThreeTextFields(
-          'UF', 'Bairro', 'CEP', ),
         SizedBox(height: 16),
-        _buildUploadButton('Cópia do CNPJ - Comprovante de Inscrição e Situação Cadastral'),
-        _buildUploadButton('Contrato Social e suas alterações'),
-        _buildUploadButton('Certidão Negativa de Débitos Relativos aos Tributos Federais'),
-        _buildUploadButton('Cópia do comprovante de endereço (EM NOME DA EMPRESA)'),
-        _buildUploadButton('Certidão Negativa de Débitos junto à Secretaria de Estado de Fazenda do DF'),
+        _buildTextFieldAndUpload('Número do CNPJ', 'Cópia do CNPJ - Comprovante de Inscrição e Situação Cadastral'),
+        _buildTextFieldAndUpload('Número de Inscrição (INSS)', 'Contrato Social e suas alterações'),
+        _buildTextFieldAndUpload('Endereço', 'Certidão Negativa de Débitos Relativos aos Tributos Federais'),
+        _buildTextFieldAndUpload('UF', 'Cópia do comprovante de endereço (EM NOME DA EMPRESA)'),
+        _buildTextFieldAndUpload('Bairro', 'Certidão Negativa de Débitos junto à Secretaria de Estado de Fazenda do DF'),
+        _buildTextFieldAndUpload('CEP', null), // Campo de texto sem botão de upload
       ],
     );
   }
@@ -268,68 +312,13 @@ class _PguploadPageState extends State<PguploadPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Documentos para Pessoa Jurídica de Direito Público', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18,)),
-        SizedBox(height: 8),
-        _buildThreeTextFields('Número do CNPJ', 'Número do Cartão de Cadastro (CF/DF)','Endereço', ),
-        _buildThreeTextFields('UF', 'Bairro', 'CEP'),
         SizedBox(height: 16),
-        _buildUploadButton('Cópia do CNPJ - Comprovante de Inscrição e Situação Cadastral'),
-        _buildUploadButton('Ato de instituição e suas alterações'),
-        _buildUploadButton('Cópia do comprovante de endereço (EM NOME DA ENTIDADE)'),
-        _buildUploadButton('Cópia do Cartão de Cadastro Fiscal do DF (CF/DF)'),
-        _buildUploadButton('Guias de Recolhimento do ISS ou ICMS'),
-      ],
-    );
-  }
-
-  // Função para exibir o botão de upload com a funcionalidade de alterar/excluir o arquivo
-  Widget _buildUploadButton(String label) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: () async {
-            String? result = await _pickFile(); // Pegar o arquivo usando file_picker
-            if (result != null) {
-              setState(() {
-                _uploadedFiles[label] = result; // Armazenar o nome do arquivo
-              });
-            }
-          },
-          icon: Icon(Icons.attach_file, color: Colors.white),
-          label: Text(
-            _uploadedFiles[label] == null ? 'Anexar arquivo PDF' : 'Alterar arquivo',
-            style: TextStyle(color: Colors.white),
-          ),
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all(Color(0xFF005EB8)), // Azul da página
-            padding: WidgetStateProperty.all(EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
-          ),
-        ),
-        if (_uploadedFiles[label] != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Arquivo anexado: ${_uploadedFiles[label]}',
-                    style: TextStyle(fontSize: 14, color: Colors.blue),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _uploadedFiles[label] = null; // Excluir o arquivo anexado
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        SizedBox(height: 16),
+        _buildTextFieldAndUpload('Número do CNPJ', 'Cópia do CNPJ - Comprovante de Inscrição e Situação Cadastral'),
+        _buildTextFieldAndUpload('Número do Cartão de Cadastro (CF/DF)', 'Ato de instituição e suas alterações'),
+        _buildTextFieldAndUpload('Endereço', 'Cópia do comprovante de endereço (EM NOME DA ENTIDADE)'),
+        _buildTextFieldAndUpload('UF', 'Cópia do Cartão de Cadastro Fiscal do DF (CF/DF)'),
+        _buildTextFieldAndUpload('Bairro', 'Guias de Recolhimento do ISS ou ICMS'),
+        _buildTextFieldAndUpload('CEP', null), // Campo de texto sem botão de upload
       ],
     );
   }
